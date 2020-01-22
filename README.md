@@ -38,3 +38,7 @@ Voraussetzungen:
 - requests
 
 das Programm des Tages als Textdatei
+
+__TVProgramm2.py__
+
+ist eine Version von TVProgramm2.py in Kombination jetzt und demnächst
