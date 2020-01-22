@@ -119,9 +119,9 @@ class Window(QMainWindow):
                         or ft[3] in self.table.item(row, column).text():
                             header = self.table.horizontalHeaderItem(column).text()
                             h = int(self.hour)
-                            if int(self.table.item(row, column).text().partition(":")[0]) >= h-1:
-                                msg = "%s um %s" %(header, self.table.item(row, column).text().replace(" ", " Uhr: ", 1))
-                                findList.append(msg)
+                            #if int(self.table.item(row, column).text().partition(":")[0]) > h-1:
+                            msg = "%s um %s" %(header, self.table.item(row, column).text().replace(" ", " Uhr: ", 1))
+                            findList.append(msg)
             if not findList == []:
                 self.msgbox('\n'.join(findList))
             else:
@@ -157,17 +157,19 @@ class Window(QMainWindow):
     def selectTime(self, column):
         h = int(self.hour + "00")
         for row in range(self.table.rowCount()):
-            if not self.table.item(row, column) == None:
-                if int(self.table.item(row, column).text().partition(" ")[0].replace(":", "")) <= h-30:
-                    self.table.item(row, column).setSelected(False)
-                else:
-                    self.table.item(row, column).setSelected(True)
-                if int(self.table.item(row, column).text().partition(" ")[0].replace(":", "")) > h+90:
-                    self.table.item(row, column).setSelected(False)
-                #if self.table.item(row, column).text() == '':
-                    #self.table.item(row, column).setSelected(False)
+            if self.table.item(row, column) == None:
+                self.table.setItem(row, column, QTableWidgetItem(" "))
+                self.table.item(row, column).setSelected(False)
+                
+            if self.table.item(row, column) == ' ':
+                self.table.item(self.table.rowCount(), column).setSelected(False)
+  
+            if self.table.item(row, column).text().startswith(str(h)[:2]):
+                self.table.item(row, column).setSelected(True)
+                self.table.scrollToItem(self.table.selectedItems()[0], 1)
+            else:
+                self.table.item(row, column).setSelected(False)
 
-            self.table.scrollToItem(self.table.selectedItems()[0]) ##(row, column))
                     
     def msgbox(self, message):
         msg = QMessageBox(1, "Ergebnis", message, QMessageBox.Ok)
@@ -247,3 +249,4 @@ if __name__ == '__main__':
     window.setGeometry(0, 0, 900, 600)
     window.show()
     sys.exit(app.exec_())
+    
