@@ -39,6 +39,8 @@ Voraussetzungen:
 
 das Programm des Tages als Textdatei
 
-__TVProgramm2.py__
+__TVProgramm2B.py__
 
 ist eine Version von TVProgramm2.py in Kombination jetzt und demnächst
+
+![screenshot2](https://github.com/Axel-Erfurt/TV-Programm/blob/master/screenshot_tvprogramm2b.png)
