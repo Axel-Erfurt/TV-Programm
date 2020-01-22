@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-import sys, csv
+import sys
 import json
 import time
 from subprocess import Popen, PIPE
