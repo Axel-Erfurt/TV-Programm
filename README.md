@@ -2,6 +2,7 @@
 TV-Programm des Tages
 
 __TVProgramm2.py__
+
 Voraussetzungen:
 - python3
 - PyQt5
@@ -13,6 +14,7 @@ Buttons zur Senderwahl
 
 
 __tv_hoerzu_jetzt.py__
+
 Voraussetzungen:
 - python3
 - BeautifulSoup
@@ -20,7 +22,8 @@ Voraussetzungen:
 
 zeigt was gerade läuft
 
-tv_hoerzu_gleich.py
+__tv_hoerzu_gleich.py__
+
 Voraussetzungen:
 - python3
 - BeautifulSoup
@@ -29,6 +32,7 @@ Voraussetzungen:
 zeigt was demnächst läuft
 
 __tv_hoerzu_tag.py__
+
 Voraussetzungen:
 - python3
 - requests
