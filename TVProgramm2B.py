@@ -6,7 +6,7 @@ import time
 from subprocess import Popen, PIPE
 import os
 from datetime import date, datetime
-from PyQt5.QtWidgets import (QWidget, QApplication, QTableWidget, QTableWidgetItem, QLineEdit, QPlainTextEdit, 
+from PyQt5.QtWidgets import (QWidget, QApplication, QTableWidget, QTableWidgetItem, QLineEdit, QTextEdit, 
                              QVBoxLayout, QAction, QPushButton, QToolBar, QMessageBox, QLabel, QMainWindow)
 from PyQt5.QtCore import Qt, QDir
 from PyQt5.QtGui import QIcon
@@ -20,14 +20,12 @@ class Viewer(QWidget):
         QWidget.__init__(self)
         self.setStyleSheet(myStyleSheet(self))
         self.setWindowFlags(Qt.FramelessWindowHint)
-        self.viewer = QPlainTextEdit()
+        self.viewer = QTextEdit()
         self.viewer.setReadOnly(True)
         layout = QVBoxLayout()
         self.title = QLabel()
         layout.addWidget(self.title)
         layout.addWidget(self.viewer)
-        #self.lbl = QLabel("Schließen mit Escape")
-        #layout.addWidget(self.lbl)
         self.setLayout(layout)
         
     def keyPressEvent(self, event):
@@ -44,20 +42,26 @@ class Window(QMainWindow):
         #self.table.setSelectionBehavior(2)
         self.table.horizontalScrollBar().setVisible(False)
         self.table.verticalScrollBar().setVisible(False)
+        
         self.setStyleSheet(myStyleSheet(self))
-        self.chList = ["ard","zdf","arte","zdf neo","zdf info","wdr","ndr","mdr","hr","swr","br",\
-            "rbb","3sat","kika","phoenix","tagesschau","one", "rtl", "sat 1", "pro 7", "kabel 1", \
-            "rtl 2", "vox", "rtl nitro", "n24 doku", "kabel 1 doku", "sport 1", "super rtl", \
-            "sat 1 gold", "vox up", "sixx", "servus tv", "super rtl"]       
-        ### Zugehörige ID bei hoerzu
-        self.idList = [71,37,58,659,276,46,47,48,49,10142,51,52,56,57,194,100,146,38,39,40,44,41,42,763,12045,12043,64,12033,774,12125,694,660,43]
+        self.chList = []       
+        ### Zugehörige ID
+        self.idList = []
+        
+        self.dictList = {'ard': 71, 'zdf': 37, 'zdf neo': 659, 'zdf info': 276, 'arte': 58, 'wdr': 46, 'ndr': 47, 'mdr': 48, 'hr': 49, 'swr': 10142, 'br': 51, 'rbb': 52, '3sat': 56,'alpha': 104, 'kika': 57, 'phoenix': 194, 'tagesschau': 100, 'one': 146, 'rtl': 38, 'sat 1': 39, 'pro 7': 40,'rtl plus': 12033, 'kabel 1': 44, 'rtl 2': 41, 'vox': 42, 'rtl nitro': 763, 'n24 doku': 12045, 'kabel 1 doku': 12043, 'sport 1': 64, 'super rtl': 43, 'sat 1 gold': 774, 'vox up': 12125, 'sixx': 694, 'servus tv': 660, 'welt': 175, 'orf 1': 54, 'orf 2': 55, 'orf 3': 56, 'rtl passion': 529, 'rtl crime': 527}
+        
+        for key, value in self.dictList.items():
+            self.chList.append(key)
+            self.idList.append(value)
+        
         count = len(self.chList)
+        
         self.table.verticalHeader().setVisible(False)
         self.table.setColumnCount(count)
         for column in range(count):
             header = QTableWidgetItem(self.chList[column].upper())
             self.table.setHorizontalHeaderItem(column, header)
-            
+        self.table.horizontalHeader().sectionClicked.connect(self.selectTime)
         self.table.horizontalHeader().setDefaultAlignment(Qt.AlignLeft)
         layout = QVBoxLayout()
         layout.addWidget(self.table)
@@ -74,12 +78,34 @@ class Window(QMainWindow):
         self.findfield.setFixedWidth(180)
         tbf.addWidget(self.findfield)
         tbf.addSeparator()
+        
         actNow = QPushButton("Jetzt", self, clicked = self.doNow)
         actNow.setFixedWidth(70)
         tbf.addWidget(actNow)
+        
         actNext = QPushButton("Danach", self, clicked = self.doNext)
         actNext.setFixedWidth(70)
         tbf.addWidget(actNext)
+        
+        act15 = QPushButton("15:00", self, clicked = lambda: self.doTime("15:"))
+        act15.setFixedWidth(70)
+        tbf.addWidget(act15)
+        
+        act16 = QPushButton("16:00", self, clicked = lambda: self.doTime("16:"))
+        act16.setFixedWidth(70)
+        tbf.addWidget(act16)
+        
+        act18 = QPushButton("18:00", self, clicked = lambda: self.doTime("18:"))
+        act18.setFixedWidth(70)
+        tbf.addWidget(act18)
+        
+        actAbend = QPushButton("20:15", self, clicked = lambda: self.doTime("20:15"))
+        actAbend.setFixedWidth(70)
+        tbf.addWidget(actAbend)
+        
+        act22 = QPushButton("22:00", self, clicked = lambda: self.doTime("22:"))
+        act22.setFixedWidth(70)
+        tbf.addWidget(act22)
 
         tb = QToolBar("Sender 1")
         self.addToolBar(Qt.LeftToolBarArea, tb)
@@ -159,19 +185,46 @@ class Window(QMainWindow):
                         or ft[3] in self.table.item(row, column).text():
                             header = self.table.horizontalHeaderItem(column).text()
                             h = int(self.hour)
-                            #if int(self.table.item(row, column).text().partition(":")[0]) > h-1:
                             msg = "%s um %s" %(header, self.table.item(row, column).text().replace(" ", " Uhr: ", 1))
                             findList.append(msg)
                                 
             if not findList == []:
                 text = '\n'.join(findList)
                 self.v = Viewer()
-                self.v.viewer.setPlainText(text)
+                self.v.viewer.setText(text)
                 self.v.setGeometry(100, 50, 400, 400)
                 self.v.title.setText("<h1>Suchergebnis</h1>(Schließen mit Escape)")
                 self.v.show()
             else:
                 self.msgbox("Suchergebnis", "nichts gefunden!")
+                
+    def doTime(self, ft):
+        findList = []
+        print("suche nach", ft)
+        for row in range(0, self.table.rowCount()):
+            for column in range(self.table.columnCount()):
+                if not self.table.item(row, column) == None:
+                    if ft in self.table.item(row, column).text():
+                        header = self.table.horizontalHeaderItem(column).text()
+                        h = int(self.hour)
+                        m = self.table.item(row, column).text().replace("20:15 ", "", 1)
+                        msg = "<b>head</b><br>msg<br>"
+                        ms = msg.replace("head", header).replace("msg", m)
+                        findList.append(ms)
+                            
+        if not findList == []:
+            text = '\n'.join(findList)
+            self.v = Viewer()
+            self.v.viewer.setText(text)
+            self.v.setGeometry(100, 50, 700, 600)
+            title = "<h1>Proramm nach mmm Uhr</h1>(Schließen mit Escape)"
+            if len(ft) > 4:
+                self.v.title.setText(title.replace("mmm", ft))
+            else:
+                self.v.title.setText(title.replace("mmm", ft + "00"))
+            self.v.show()
+        else:
+            self.msgbox("Suchergebnis", "nichts gefunden!")  
         
     def showMe(self, *args):
         name = self.sender().objectName().upper()
@@ -200,9 +253,10 @@ class Window(QMainWindow):
         self.selectTime(0)
         
     def selectTime(self, column):
+        self.table.clearSelection()
         h = int(self.hour + "00")
-        k = h - 60
-        m = h + 120
+        k = h + 10
+        m = h + 90
         for row in range(self.table.rowCount()):
             if self.table.item(row, column) == None:
                 self.table.setItem(row, column, QTableWidgetItem(" "))
@@ -210,14 +264,14 @@ class Window(QMainWindow):
                 
             if self.table.item(row, column) == ' ':
                 self.table.item(self.table.rowCount(), column).setSelected(False)
-  
-            if self.table.item(row, column).text().startswith(str(h)[:2]) \
-                or self.table.item(row, column).text().startswith(str(k)[:2])  \
-                or self.table.item(row, column).text().startswith(str(m)[:2]):
-                self.table.item(row, column).setSelected(True)
-                self.table.scrollToItem(self.table.selectedItems()[0], 1)
-            else:
-                self.table.item(row, column).setSelected(False)
+            rowtext = str(self.table.item(row, column).text().partition(" ")[0].replace(":", ""))
+            if not rowtext == "":
+                mt = int(rowtext)
+                if mt > k and mt < m:
+                    self.table.item(row, column).setSelected(True)
+                    self.table.scrollToItem(self.table.selectedItems()[0], 1)
+                else:
+                    self.table.item(row, column).setSelected(False)
 
                     
     def msgbox(self, title, message):
@@ -229,14 +283,14 @@ class Window(QMainWindow):
         self.v = Viewer()
         self.v.title.setText("<h1>jetzt im TV</h1>(Schließen mit Escape)")
         self.v.setGeometry(100, 40, 700, 600)
-        self.v.viewer.setPlainText(text)
+        self.v.viewer.setText(text)
         self.v.show()
         self.v.viewer.setFocus()
 
     def doNext(self):
         text = tv_hoerzu_gleich_tv.do()
         self.v = Viewer()
-        self.v.viewer.setPlainText(text)
+        self.v.viewer.setText(text)
         self.v.title.setText("<h1>demnächst im TV</h1>(Schließen mit Escape)")
         self.v.setGeometry(100, 50, 700, 600)
         self.v.show()
@@ -257,7 +311,7 @@ QWidget
 {
 background: #2e3436;
 }
-QPlainTextEdit
+QTextEdit
 {
 font-size: 11px;
 background: #2e3436;
@@ -335,3 +389,4 @@ if __name__ == '__main__':
     #window.setGeometry(0, 0, 900, 600)
     window.showMaximized()
     sys.exit(app.exec_())
+    
