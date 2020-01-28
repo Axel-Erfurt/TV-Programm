@@ -48,7 +48,15 @@ class Window(QMainWindow):
         ### Zugehörige ID
         self.idList = []
         
-        self.dictList = {'ard': 71, 'zdf': 37, 'zdf neo': 659, 'zdf info': 276, 'arte': 58, 'wdr': 46, 'ndr': 47, 'mdr': 48, 'hr': 49, 'swr': 10142, 'br': 51, 'rbb': 52, '3sat': 56,'alpha': 104, 'kika': 57, 'phoenix': 194, 'tagesschau': 100, 'one': 146, 'rtl': 38, 'sat 1': 39, 'pro 7': 40,'rtl plus': 12033, 'kabel 1': 44, 'rtl 2': 41, 'vox': 42, 'rtl nitro': 763, 'n24 doku': 12045, 'kabel 1 doku': 12043, 'sport 1': 64, 'super rtl': 43, 'sat 1 gold': 774, 'vox up': 12125, 'sixx': 694, 'servus tv': 660, 'welt': 175, 'orf 1': 54, 'orf 2': 55, 'orf 3': 56, 'rtl passion': 529, 'rtl crime': 527}
+        self.dictList = {'ard': 71, 'zdf': 37, 'zdf neo': 659, 'zdf info': 276, 'arte': 58, \
+                        'wdr': 46, 'ndr': 47, 'mdr': 48, 'hr': 49, 'swr': 10142, 'br': 51, \
+                        'rbb': 52, '3sat': 56,'alpha': 104, 'kika': 57, 'phoenix': 194, \
+                        'tagesschau': 100, 'one': 146, 'rtl': 38, 'sat 1': 39, 'pro 7': 40,\
+                        'rtl plus': 12033, 'kabel 1': 44, 'rtl 2': 41, 'vox': 42, 'rtl nitro': 763, \
+                        'n24 doku': 12045, 'kabel 1 doku': 12043, 'sport 1': 64, 'super rtl': 43, \
+                        'sat 1 gold': 774, 'vox up': 12125, 'sixx': 694, 'servus tv': 660, \
+                        'welt': 175, 'orf 1': 54, 'orf 2': 55, 'orf 3': 56, 'rtl passion': 529, \
+                        'rtl crime': 527, 'srf 1': 59, 'srf 2': 60, 'srf info': 231}
         
         for key, value in self.dictList.items():
             self.chList.append(key)
@@ -106,13 +114,17 @@ class Window(QMainWindow):
         act22 = QPushButton("22:00", self, clicked = lambda: self.doTime("22:"))
         act22.setFixedWidth(70)
         tbf.addWidget(act22)
+        
+        actReload = QPushButton("reload", self, clicked = self.reload)
+        actReload.setFixedWidth(70)
+        tbf.addWidget(actReload)
 
         tb = QToolBar("Sender 1")
         self.addToolBar(Qt.LeftToolBarArea, tb)
         tb.setContextMenuPolicy(Qt.PreventContextMenu)
         tb.setMovable(True)
 
-        for b in range(16):
+        for b in range(18):
             name = self.chList[b].upper()
             act = QPushButton(name, self, clicked = self.showMe)
             act.setFixedWidth(70)
@@ -123,7 +135,7 @@ class Window(QMainWindow):
 
         tb2 = QToolBar("Sender 2")
         self.addToolBar(Qt.RightToolBarArea, tb2)     
-        for b in range(17, len(self.chList)):
+        for b in range(18, len(self.chList)):
             name = self.chList[b].upper()
             act = QPushButton(name, self, clicked = self.showMe)
             act.setFixedWidth(70)
@@ -171,6 +183,39 @@ class Window(QMainWindow):
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.resizeRowsToContents()
         
+    def reload(self):
+        self.table.clear()
+        url = "http://mobile.hoerzu.de/programbystation"
+        ### temporär speichern
+        myfile = os.path.join(QDir.homePath(), "prg.json")
+        basedate = str(date.today())
+        now = datetime.now()
+        td = now.strftime("%-d.%B %Y")
+        self.hour = now.strftime("%H")
+        print("Stunde", self.hour)
+        self.setWindowTitle("%s - %s" %("TV Programm heute", td))
+        ### überprüfen ob Datei existiert
+        cmd = ["wget", url, "-O", myfile]
+        print("hole neue Datei")
+        process = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = process.communicate()
+            
+        text = open(myfile).read()
+        self.parsed = json.loads(text)
+        
+        ### Programm aller Kanäle in der Liste 
+        self.table.setRowCount(36)
+
+        for x in range(len(self.idList)):
+            p = self.getValues(self.idList[x], x)
+            
+        for column in range(self.table.columnCount()):
+            self.table.resizeColumnToContents(column)
+            header = QTableWidgetItem(self.chList[column].upper())
+            self.table.setHorizontalHeaderItem(column, header)  
+        self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.resizeRowsToContents()
+        
     def findMe(self):
         if not self.findfield.text() == "":
             ft = [self.findfield.text(), self.findfield.text().lower(), self.findfield.text().upper(), self.findfield.text().title()]
@@ -201,7 +246,7 @@ class Window(QMainWindow):
     def doTime(self, ft):
         findList = []
         print("suche nach", ft)
-        for row in range(0, self.table.rowCount()):
+        for row in range(self.table.rowCount()):
             for column in range(self.table.columnCount()):
                 if not self.table.item(row, column) == None:
                     if ft in self.table.item(row, column).text():
@@ -255,7 +300,7 @@ class Window(QMainWindow):
     def selectTime(self, column):
         self.table.clearSelection()
         h = int(self.hour + "00")
-        k = h + 10
+        k = h - 60
         m = h + 90
         for row in range(self.table.rowCount()):
             if self.table.item(row, column) == None:
@@ -272,6 +317,26 @@ class Window(QMainWindow):
                     self.table.scrollToItem(self.table.selectedItems()[0], 1)
                 else:
                     self.table.item(row, column).setSelected(False)
+        #for row in range(self.table.rowCount()):
+        if self.table.selectedItems() == []:
+            h = int(self.hour + "00")
+            k = h - 95
+            m = h
+            for row in range(self.table.rowCount()):
+                if self.table.item(row, column) == None:
+                    self.table.setItem(row, column, QTableWidgetItem(" "))
+                    self.table.item(row, column).setSelected(False)
+                    
+                if self.table.item(row, column) == ' ':
+                    self.table.item(self.table.rowCount(), column).setSelected(False)
+                rowtext = str(self.table.item(row, column).text().partition(" ")[0].replace(":", ""))
+                if not rowtext == "":
+                    mt = int(rowtext)
+                    if mt > k and mt < m:
+                        self.table.item(row, column).setSelected(True)
+                        self.table.scrollToItem(self.table.selectedItems()[0], 1)
+                    else:
+                        self.table.item(row, column).setSelected(False)                
 
                     
     def msgbox(self, title, message):
@@ -386,7 +451,6 @@ if __name__ == '__main__':
   
     app = QApplication(sys.argv)
     window = Window()
-    #window.setGeometry(0, 0, 900, 600)
     window.showMaximized()
     sys.exit(app.exec_())
     
