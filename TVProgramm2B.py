@@ -7,9 +7,8 @@ from subprocess import Popen, PIPE
 import os
 from datetime import date, datetime
 from PyQt5.QtWidgets import (QWidget, QApplication, QTableWidget, QTableWidgetItem, QLineEdit, QTextEdit, 
-                             QVBoxLayout, QAction, QPushButton, QToolBar, QMessageBox, QLabel, QMainWindow)
+                             QVBoxLayout, QPushButton, QToolBar, QMessageBox, QLabel, QMainWindow)
 from PyQt5.QtCore import Qt, QDir
-from PyQt5.QtGui import QIcon
 
 import tv_hoerzu_jetzt_tv
 import tv_hoerzu_gleich_tv
@@ -78,6 +77,8 @@ class Window(QMainWindow):
         self.setCentralWidget(cw)
         
         tbf = QToolBar("Tools")
+        tbf.setContextMenuPolicy(Qt.PreventContextMenu)
+        tbf.setMovable(False)
         self.addToolBar(Qt.TopToolBarArea, tbf)
         empty = QWidget()
         empty.setFixedWidth(72)
@@ -120,9 +121,9 @@ class Window(QMainWindow):
         tbf.addWidget(actReload)
 
         tb = QToolBar("Sender 1")
-        self.addToolBar(Qt.LeftToolBarArea, tb)
         tb.setContextMenuPolicy(Qt.PreventContextMenu)
-        tb.setMovable(True)
+        tb.setMovable(False)
+        self.addToolBar(Qt.LeftToolBarArea, tb)
 
         for b in range(18):
             name = self.chList[b].upper()
@@ -131,9 +132,11 @@ class Window(QMainWindow):
             act.setObjectName(name)
             tb.addWidget(act)
             
-        br = self.addToolBarBreak()
+        self.addToolBarBreak()
 
         tb2 = QToolBar("Sender 2")
+        tb2.setContextMenuPolicy(Qt.PreventContextMenu)
+        tb2.setMovable(False)
         self.addToolBar(Qt.RightToolBarArea, tb2)     
         for b in range(18, len(self.chList)):
             name = self.chList[b].upper()
@@ -188,7 +191,7 @@ class Window(QMainWindow):
         url = "http://mobile.hoerzu.de/programbystation"
         ### temporär speichern
         myfile = os.path.join(QDir.homePath(), "prg.json")
-        basedate = str(date.today())
+        #basedate = str(date.today())
         now = datetime.now()
         td = now.strftime("%-d.%B %Y")
         self.hour = now.strftime("%H")
@@ -262,7 +265,7 @@ class Window(QMainWindow):
             self.v = Viewer()
             self.v.viewer.setText(text)
             self.v.setGeometry(100, 50, 700, 600)
-            title = "<h1>Proramm nach mmm Uhr</h1>(Schließen mit Escape)"
+            title = "<h1>Programm nach mmm Uhr</h1>(Schließen mit Escape)"
             if len(ft) > 4:
                 self.v.title.setText(title.replace("mmm", ft))
             else:
