@@ -42,5 +42,6 @@ das Programm des Tages als Textdatei
 __TVProgramm2B.py__
 
 ist eine Version von TVProgramm2.py in Kombination jetzt und demnächst
+- TVProgramm2B6.py Version für PyQt6
 
 ![screenshot2](https://github.com/Axel-Erfurt/TV-Programm/blob/master/screenshot2B.png)
